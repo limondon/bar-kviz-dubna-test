@@ -39,7 +39,7 @@ body{
   overscroll-behavior:contain;
 }
 .overlay.hidden{display:none;}
-body.modal-open{overflow:hidden;position:fixed;width:100%;}
+body.modal-open{overflow:hidden;touch-action:none;}
 .modal{
   background:var(--surface);border:1px solid var(--border);
   border-radius:16px;padding:var(--sp-xl) var(--sp-lg);
