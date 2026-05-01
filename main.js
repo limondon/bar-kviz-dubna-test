@@ -440,10 +440,12 @@ function openMenuPicker(){
   renderPickerList();
   updatePickerBtn();
   document.getElementById('menuPickerOverlay').classList.remove('hidden');
+  document.body.classList.add('modal-open');
 }
 
 function closeMenuPicker(){
   document.getElementById('menuPickerOverlay').classList.add('hidden');
+  document.body.classList.remove('modal-open');
 }
 
 function renderPickerTabs(){
@@ -812,8 +814,9 @@ function openRoleModal(){
   if(role){const m={waiter:'rw',barman:'rb',admin:'ra'};document.querySelector('.rc.'+m[role])?.classList.add('sel');}
   document.getElementById('roleClose').style.display=role?'block':'none';
   document.getElementById('roleOverlay').classList.remove('hidden');
+  document.body.classList.add('modal-open');
 }
-function closeRoleModal(){document.getElementById('roleOverlay').classList.add('hidden');}
+function closeRoleModal(){document.getElementById('roleOverlay').classList.add('hidden');document.body.classList.remove('modal-open');}
 function pickRole(r){
   pendingRole=r;
   document.querySelectorAll('.rc').forEach(c=>c.classList.remove('sel'));
