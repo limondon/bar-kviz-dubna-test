@@ -691,9 +691,11 @@ async function addNewMenuItem(){
   fl('fInfo','Используй кнопку "+ Добавить" в нужной категории');
 }
 function tKey(date,tNum){return date+'_'+tNum;}
+function genToken(){return Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,6);}
 function getTMeta(date,tNum){
   const k=tKey(date,tNum);
-  if(!tablesMeta[k])tablesMeta[k]={status:'open',openedAt:Date.now(),date,tNum};
+  if(!tablesMeta[k])tablesMeta[k]={status:'open',openedAt:Date.now(),date,tNum,token:genToken()};
+  if(!tablesMeta[k].token)tablesMeta[k].token=genToken();
   return tablesMeta[k];
 }
 async function closeTable(date,tNum,sid){
@@ -714,14 +716,54 @@ async function reopenTable(date,tNum){
   const m=getTMeta(date,tNum);
   m.status='open';
   delete m.closedAt;
+  m.token=genToken(); // новый токен — старые QR умирают
   if(m.closedSessions&&m.closedSessions.length){
     m.closedSessions.pop();
   }
   await fbUpdate('tables',tablesMeta);
   renderTables();
   renderClosed();
-  fl('fOk','↩ Стол '+tNum+' переоткрыт');
+  fl('fOk','↩ Стол '+tNum+' переоткрыт — новый QR готов');
 }
+
+// ═══════════════════════════
+//  QR CODE
+// ═══════════════════════════
+async function showQR(tNum){
+  const date=todayStr();
+  const meta=getTMeta(date,tNum);
+  await fbUpdate('tables',tablesMeta); // сохраняем токен если новый
+  const token=meta.token;
+  const base=location.href.substring(0,location.href.lastIndexOf('/')+1);
+  const guestUrl=`${base}guest.html?table=${encodeURIComponent(tNum)}&token=${token}`;
+  document.getElementById('qrTableNum').textContent=tNum;
+  document.getElementById('qrUrlText').textContent=guestUrl;
+  const canvas=document.getElementById('qrCanvas');
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,220,220);
+  try{
+    const qr=window.qrcode(0,'M');
+    qr.addData(guestUrl);
+    qr.make();
+    const size=220, cells=qr.getModuleCount();
+    const cellSize=Math.floor((size-16)/cells);
+    const offset=Math.floor((size-cells*cellSize)/2);
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,size,size);
+    ctx.fillStyle='#1a1825';
+    for(let r=0;r<cells;r++){
+      for(let c=0;c<cells;c++){
+        if(qr.isDark(r,c))ctx.fillRect(offset+c*cellSize,offset+r*cellSize,cellSize-1,cellSize-1);
+      }
+    }
+  }catch(e){
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,220,220);
+    ctx.fillStyle='#333';ctx.font='11px monospace';ctx.textAlign='center';
+    ctx.fillText('QR недоступен',110,110);
+    console.warn('QR lib not loaded',e);
+  }
+  document.getElementById('qrOverlay').classList.remove('hidden');
+}
+function closeQrModal(){document.getElementById('qrOverlay').classList.add('hidden');}
 
 // ═══════════════════════════
 //  ПАРОЛЬ (хранится в Firebase)
@@ -1524,7 +1566,10 @@ function renderTables(){
     const totalItems=tOrders.reduce((s,o)=>s+(o.items?o.items.reduce((a,i)=>a+i.qty,0):0),0);
 
     const actions=isOpen
-      ?`<button class="btn-pay" data-action="closeTable" data-date="${viewDate}" data-tnum="${tNum}" data-sid="${sid}">💳 ЗАКРЫТЬ / ОПЛАЧЕН</button>`
+      ?`<div style="display:flex;gap:var(--sp-sm);flex-wrap:wrap;align-items:center;">
+          <button class="btn-pay" data-action="closeTable" data-date="${viewDate}" data-tnum="${tNum}" data-sid="${sid}">💳 ЗАКРЫТЬ / ОПЛАЧЕН</button>
+          ${(role==='waiter'||role==='admin')?`<button onclick="showQR('${tNum}')" style="min-height:var(--touch);padding:0 14px;background:rgba(245,166,35,.12);color:var(--accent);border:1px solid rgba(245,166,35,.3);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">📱 QR-код</button>`:''}
+        </div>`
       :`<button class="btn-reopen" data-action="reopenTable" data-date="${viewDate}" data-tnum="${tNum}">↩ Переоткрыть</button>`;
 
     const mgmtBtns=`
@@ -2079,7 +2124,8 @@ Object.assign(window,{
   closeConfirmModal,confirmOk,closeRenameModal,confirmRename,
   openMenuEditor,closeMenuEditor,addNewMenuItem,removeMenuItem,updateMenuItem,renderStats,renderMenuPage,
   updateMenuCatItem,removeMenuCatItem,addMenuCatItem,addMenuCategory,removeMenuCategory,moveMenuCat,
-  openMenuPicker,closeMenuPicker,confirmMenuPicker,switchPickerCat
+  openMenuPicker,closeMenuPicker,confirmMenuPicker,switchPickerCat,
+  showQR,closeQrModal
 });
 
 // ═══════════════════════════
