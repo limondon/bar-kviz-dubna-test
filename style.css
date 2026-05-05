@@ -25,6 +25,7 @@ body{
   min-height:100vh; padding-bottom:80px;
   font-size:var(--fs-md);
   -webkit-text-size-adjust:100%;
+  overflow-x:hidden;
 }
 
 /* ═══════════════════════════════
@@ -87,6 +88,7 @@ header{
   display:flex;align-items:center;justify-content:space-between;
   position:sticky;top:0;z-index:100;
   height:var(--header-h);
+  flex-shrink:0;
 }
 .logo{
   font-family:'Bebas Neue',sans-serif;
@@ -143,7 +145,11 @@ header{
 main{padding:var(--sp-md);max-width:800px;margin:0 auto;}
 #page-tables{max-width:100%;}
 .section-page{display:none;}.section-page.active{display:block;}
-#mainContent{min-height:0;}
+#mainContent{
+  min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
 
 /* ═══════════════════════════════
    FORM
@@ -249,6 +255,15 @@ textarea{resize:vertical;min-height:clamp(70px,18vw,100px);}
 .progress-label{font-size:var(--fs-xs);color:var(--muted);margin-bottom:var(--sp-sm);}
 
 .order-actions{display:flex;gap:var(--sp-sm);flex-wrap:wrap;margin-top:var(--sp-sm);}
+
+.menu-editor-item{transition:background .2s,opacity .2s;}
+.menu-editor-item.dragging{opacity:.4;}
+.menu-editor-item.drag-over{background:rgba(245,166,35,.08);}
+.menu-editor-category{transition:background .2s,opacity .2s;}
+.menu-editor-category.dragging{opacity:.4;}
+.menu-editor-category.drag-over{background:rgba(33,150,243,.08);}
+.drag-handle{cursor:grab;user-select:none;}
+.drag-handle:active{cursor:grabbing;}
 
 /* ═══════════════════════════════
    ITEM ROWS
@@ -612,3 +627,4 @@ textarea{resize:vertical;min-height:clamp(70px,18vw,100px);}
   #bottomNav{height:52px;}
   body{padding-bottom:52px;}
 }
+

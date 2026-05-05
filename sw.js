@@ -1,10 +1,10 @@
 const CACHE_NAME = 'bar-v1';
 const ASSETS = [
-  '/bar-kviz-dubna/',
-  '/bar-kviz-dubna/index.html',
-  '/bar-kviz-dubna/style.css',
-  '/bar-kviz-dubna/main.js',
-  '/bar-kviz-dubna/manifest.json',
+  './',
+  'index.html',
+  'style.css',
+  'main.js',
+  'manifest.json',
 ];
 
 // ═══════════════════════════
@@ -48,14 +48,14 @@ self.addEventListener('push', e => {
   const title = data.title || '🍺 Новый заказ!';
   const options = {
     body: data.body || 'Новый заказ в очереди',
-    icon: '/bar-kviz-dubna/icon-192.png',
-    badge: '/bar-kviz-dubna/icon-192.png',
+    icon: 'icon-192.png',
+    badge: 'icon-192.png',
     vibrate: [150, 80, 150, 80, 150],
     tag: 'new-order',           // заменяет предыдущее уведомление того же типа
     renotify: true,             // вибрирует даже если уведомление уже есть
     requireInteraction: false,
     silent: false,
-    data: { url: '/bar-kviz-dubna/' }
+    data: { url: './' }
   };
   e.waitUntil(self.registration.showNotification(title, options));
 });
@@ -69,12 +69,12 @@ self.addEventListener('notificationclick', e => {
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
       // Если приложение уже открыто — фокус на него
       for (const client of list) {
-        if (client.url.includes('bar-kviz-dubna') && 'focus' in client) {
+        if (client.url.includes(self.registration.scope) && 'focus' in client) {
           return client.focus();
         }
       }
       // Иначе открываем новое окно
-      return clients.openWindow('/bar-kviz-dubna/');
+      return clients.openWindow('./');
     })
   );
 });
@@ -88,7 +88,7 @@ self.addEventListener('message', e => {
     const { table, count } = e.data;
     self.registration.showNotification('🍺 Новый заказ!', {
       body: `Стол ${table} — ${count} позиц.`,
-      icon: '/bar-kviz-dubna/icon-192.png',
+      icon: 'icon-192.png',
       vibrate: [150, 80, 150, 80, 150],
       tag: 'new-order',
       renotify: true,
